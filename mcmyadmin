@@ -1,0 +1,82 @@
+#!/bin/bash
+# Init script for McMyAdmin on Debian Linux
+# Original script by Markus Ewald
+# Modified by bitstacker
+# Correct use of variables added by gabrielpc1190
+ 
+### BEGIN INIT INFO
+# Provides:   McMyAdmin
+# Required-Start: $local_fs $remote_fs
+# Required-Stop:  $local_fs $remote_fs
+# Should-Start:   $network
+# Should-Stop:    $network
+# Default-Start:  2 3 4 5
+# Default-Stop:   0 1 6
+# Short-Description:    McMyAdmin server
+# Description:    Starts the McMyAdmin server
+### END INIT INFO
+ 
+# Settings
+MCUSER="minecraft"
+MCDIR="/opt/minecraft/"
+ 
+. /lib/lsb/init-functions
+mc_start() {
+    log_daemon_msg "Starting McMyAdmin server"
+    if ps ax | grep SCREEN | grep -v grep | grep mcmyadmind > /dev/null 
+    then
+        log_progress_msg "McMyAdmin is already running"
+        log_end_msg 1
+    else
+        log_progress_msg "No running Server found. Starting a new one..."
+        env TERM="xterm" \
+        start-stop-daemon \
+            --start \
+            --make-pidfile \
+            --pidfile /var/run/mcmyadmin.pid \
+            --background \
+            --chuid $MCUSER \
+            --name mcmyadmind \
+            --chdir $MCDIR \
+            --exec /usr/bin/screen -- -D -m -S mcmyadmind $MCDIR/MCMA2_Linux_x86_64
+        log_end_msg 0
+    fi
+}
+
+mc_stop() {
+    log_daemon_msg "Stopping McMyAdmin server"
+    su - $USER -c "screen -p 0 -S mcmyadmind -X eval 'stuff /quit\015'" > /dev/null
+    sync
+    sleep 5
+    if [ -e /var/run/mcmyadmin.pid ]; then
+        read PID < /var/run/mcmyadmin.pid
+        if [ -d /var/run/${PID} ]; then
+            log_progress_msg "Normal shutdown not successfull, forcing"
+            start-stop-daemon \
+                --stop \
+                --signal 15 \
+                --pidfile /var/run/mcmyadmin.pid
+            fi
+    fi
+    if ps ax | grep SCREEN | grep -v grep | grep mcmyadmind > /dev/null
+    then
+        log_progress_msg "McMyAdmin is still running"
+        log_end_msg 1
+    else
+        log_progress_msg "Found no running McMyAdmin"
+        log_end_msg 0
+    fi
+}
+
+case "$1" in
+  start)
+    mc_start
+    ;;
+  stop)
+    mc_stop
+    ;;
+  *)
+    echo "Usage: /etc/init.d/mcmyadmin {start|stop}"
+    echo "       ...and hope that it works!"
+    ;;
+esac
