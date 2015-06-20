@@ -5,7 +5,7 @@ Init script for McMyAdmin on Debian Linux (Wheezy)
 
 Original script by Markus Ewald  
 Licensed as public domain  
-Modified by bitstacker
+Modified by bitstacker  
 Correct use of variables added by gabrielpc1190
 
 Usage:  
