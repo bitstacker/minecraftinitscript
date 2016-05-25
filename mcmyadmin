@@ -45,7 +45,7 @@ mc_start() {
 
 mc_stop() {
     log_daemon_msg "Stopping McMyAdmin server"
-    su - $USER -c "screen -p 0 -S mcmyadmind -X eval 'stuff /quit\015'" > /dev/null
+    su - $MCUSER -c "screen -p 0 -S mcmyadmind -X eval 'stuff /quit\015'" > /dev/null
     sync
     sleep 5
     if [ -e /var/run/mcmyadmin.pid ]; then
